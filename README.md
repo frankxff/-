@@ -324,15 +324,291 @@ var abs = function(x){
 };
 ```
 在这种方式下，function (x) { ... }是一个匿名函数，它没有函数名。但是，这个匿名函数赋值给了变量abs，所以，通过变量abs就可以调用该函数。
+> 函数也可以被定义在其他函数中，一个内部函数除了可以访问自己的参数和变量，同时也能自由访问把它嵌套在其中的父函数的参数和变量。通过一个函数中创建另一个函数对象包含一个连接到外部上下文的连接，被称为**闭包**。
+> **注意**：如果不是某些特定任务需要使用闭包，在其它函数中创建函数是不明智的，因为闭包在处理速度和内存消耗方面对脚本性能具有负面影响。
 
-上述两种定义完全等价，注意第二种方式按照完整语法需要在函数体末尾加一个;，表示赋值语句结束。
-- 调用
+上述两种定义完全等价，注意第二种方式按照完整语法需要在函数体末尾加一个;表示赋值语句结束。
+调用：
 ```
 abs(10);	//返回10
 abs(-9);	//返回9
 abs(10,'hahahaha');	//返回10，JavaScript允许传入任意多参数不影响调用
 abs();		//返回NaN
 ```
+- 函数调用
+调用一个函数会暂停当前函数的执行，并传递控制权和参数给新函数。除了声明时定义的形式参数，每个函数还接收两个附加的参数：this和arguments
+参数this在面向对象编程中很重要，它的值取决于调用的模式。
+JS中共有四种调用模式：方法调用、函数调用、构造器调用、apply调用。不同调用模式在初始化this参数时存在差异。
+函数调用时当实际参数（arguments）的个数与形式参数（parameters）的个数不匹配时，不会导致运行时错误。如果实际参数值过多了，超出的参数值会被忽略。如果实际参数值过少，缺失的值会被替换为undefined。对参数值不会进行类型检查：任何类型的值都可以被传递给任何参数。
 
+1.方法调用模式
+当**函数被保存为对象的一个属性时**，称之为一个方法。当一个方法被调用时，this被绑定到该对象。如果调用表达式包含一个提取属性的动作（即包含一个.表达式），那么它就是被当做一个方法来调用。
+```
+//创建 myObject 对象。它有一个 value 属性和一个 increment 方法
+// increment 方法接受一个可选的参数。如果参数不是数字，那么默认使用数字1
+var myObject = {
+	value: 0,
+	increment: function (inc){
+		this.value += typeof inc === 'number' ? inc : 1;
+		}
+	};
 
+myObject.increment();
+document.writeln(myObject.value); //1
 
+myObject.increment(2);
+document.writeln(myObject.value); //3
+```
+方法可以使用this访问自己所属的对象，所以它能从对象中取值或对对象进行修改。this到对象的绑定发生在调用的时候。这个“超级”延迟绑定（very late binding）使得函数可以对this高度复用。通过this可取得它们所属对象的上下文的方法称为公共方法（public method）。
+
+2.函数调用模式
+要指定函数的this指向哪个对象，可以用函数本身的apply方法，它接收两个参数，第一个参数就是需要绑定的this变量，第二个参数是Array，表示函数本身的参数。
+```
+function getAge() {
+    var y = new Date().getFullYear();
+    return y - this.birth;
+}
+
+var xiaoming = {
+    name: '小明',
+    birth: 1990,
+    age: getAge
+};
+
+xiaoming.age(); // 25
+getAge.apply(xiaoming, []); // 25, this指向xiaoming, 参数为空
+```
+- 参数（arguments）
+当函数被调用时，会得到一个“免费”配送的参数，那就是arguments数组。函数可以通过此参数访问所有它被调用时传递给它的参数列表，包括那些没有被分配给函数声明时定义的形式参数的多余参数。这使得编写一个无须指定参数个数的函数成为可能：
+```
+    // 构造一个将大量的值相加的函数。    
+    // 注意该函数内部定义的变量 sum 不会与函数外部定义的 sum 产生冲突。
+	// 该函数只会看到内部的那个变量。    
+    var sum = function ( ) {
+       var i, sum = 0;
+       for (i = 0; i < arguments.length; i += 1) {
+          sum += arguments[i];
+       }
+       return sum;
+    };
+    
+    document.writeln(sum(4, 8, 15, 16, 23, 42)); // 108
+```
+因为语言的一个设计错误，arguments并不是一个真正的数组。它只是一个“类似数组（array-like）”的对象。arguments拥有一个length属性，但它没有任何数组的方法。
+- 返回
+当一个函数被调用时，它从第一个语句开始执行，并在遇到关闭函数体的}时结束。然后函数把控制权交还给调用该函数的程序。
+return语句可用来使函数提前返回。当return被执行时，函数立即返回而不再执行余下的语句。
+一个函数总是会返回一个值。如果没有指定返回值，则返回undefined。
+如果函数调用时在前面加上了new前缀，且返回值不是一个对象，则返回this（该新对象）。
+
+- 异常
+JavaScript提供了一套异常处理机制。异常是干扰程序的正常流程的不寻常（但并非完全是出乎意料的）的事故。当发现这样的事故时，你的程序应该抛出一个异常：
+```
+    var add = function (a, b) {
+       if (typeof a !== 'number' || typeof b !== 'number') {
+         throw {
+            name: 'TypeError',
+            message: 'add needs numbers'
+         }
+       }
+       return a + b;
+    }
+```
+throw语句中断函数的执行。它应该抛出一个exception对象，该对象包含一个用来识别异常类型的name属性和一个描述性的message属性。你也可以添加其他的属性。
+该exception对象将被传递到一个try语句的catch从句：
+```
+    // 构造一个 try_it 函数，以不正确的方式调用之前的 add 函数。
+    
+    var try_it = function ( ) {
+       try {
+          add("seven");
+       } catch (e) {
+          document.writeln(e.name + ': ' + e.message);
+       }
+    }
+    
+    try_it( );
+```
+如果在try代码块内抛出了一个异常，控制权就会跳转到它的catch从句。
+一个try语句只会有一个捕获所有异常的catch代码块。如果你的处理手段取决于异常的类型，那么异常处理器必须检查异常对象的name属性来确定异常的类型。
+### 箭头函数 ###
+ES6标准新增函数。
+```
+x => x * x
+```
+上面的箭头函数相当于
+```
+function(x){
+	return x * x;
+}
+```
+当包含多条语句时，不能省略{...}和return：
+```
+x => {
+	if(x > 0){
+		return x * x;
+	}
+	else{
+		return -x * x;
+	}
+}
+```
+如果参数不是一个，需要用括号()括起来：
+```
+(x, y) => x * x + y * y;
+(x, y, ...rest) => {
+    var i, sum = x + y;
+    for (i=0; i<rest.length; i++) {
+        sum += rest[i];
+    }
+    return sum;
+}
+```
+### 标准对象 ###
+1.Date
+```
+在JavaScript中，Date对象用来表示日期和时间。
+要获取系统当前时间，用：
+var now = new Date();
+now; // Wed Jun 24 2015 19:49:22 GMT+0800 (CST)
+now.getFullYear(); // 2015, 年份
+now.getMonth(); // 5, 月份，注意月份范围是0~11，5表示六月
+now.getDate(); // 24, 表示24号
+now.getDay(); // 3, 表示星期三
+now.getHours(); // 19, 24小时制
+now.getMinutes(); // 49, 分钟
+now.getSeconds(); // 22, 秒
+now.getMilliseconds(); // 875, 毫秒数
+now.getTime(); // 1435146562875, 以number形式表示的时间戳
+```
+2.RegExp正则表达式
+略
+3.JSON
+JSON字符集必须是UTF-8。
+为了统一解析，JSON的字符串规定必须用双引号""，Object的键也必须用双引号""。
+JavaScript内置了JSON的解析，可以直接使用JSON
+- 序列化
+```
+'use strict';
+var xiaoming = {
+    name: '小明',
+    age: 14,
+    gender: true,
+    height: 1.65,
+    grade: null,
+    'middle-school': '\"W3C\" Middle School',
+    skills: ['JavaScript', 'Java', 'Python', 'Lisp']
+};
+var s = JSON.stringify(xiaoming);
+console.log(s);
+//{"name":"小明","age":14,"gender":true,"height":1.65,"grade":null,"middle-school":"\"W3C\" Middle School","skills":["JavaScript","Java","Python","Lisp"]}
+```
+- 反序列化
+拿到一个JSON格式的字符串，我们直接用JSON.parse()把它变成一个JavaScript对象：
+```
+JSON.parse('[1,2,3,true]'); // [1, 2, 3, true]
+JSON.parse('{"name":"小明","age":14}'); // Object {name: '小明', age: 14}
+JSON.parse('true'); // true
+JSON.parse('123.45'); // 123.45
+```
+### 浏览器对象 ###
+1.window
+表示浏览器的窗口。
+   有innerWidth和innerHeight这两个属性。可以获取浏览器的内部宽高。
+
+   window.innerWidth;
+   window.innerHeight;
+
+   对应的还有outWidth和outHeight这两个属性，获取浏览器窗口的整体的宽高。
+   window.outWidth;
+   window.outHeight;
+
+2.navigator
+表示浏览器信息。
+navigator.appName:浏览器名称；
+navigator.appVersion:浏览器版本
+navigator.language:浏览器设置的语言
+navigator.platform：操作系统类型；
+navigator.userAgent:浏览器设定的Use-Agent字符串
+
+3.screen
+表示屏幕信息。
+screen.width; //屏幕宽度
+screen.height;  //屏幕宽度
+screen.colorDepth;  //颜色位数
+
+4.location
+表示当前页面的URL信息。
+location.href;  //获取当前页面URL整体信息
+
+5.document
+表示当前的页面信息。
+还可以获取当前页面的Cookie信息。
+document.cookie;
+
+6.history
+表示页面的历史纪录。
+但在任何情况下不使用该对象。
+### 操作DOM ###
+- 更新DOM
+'use strict';
+// 获取<p>javascript</p>节点:
+var js = document.getElementById('test-js');
+// 修改文本为JavaScript:
+// TODO:
+js.innerHTML = 'JavaScript';
+// 修改CSS为: color: #ff0000, font-weight: bold
+// TODO:
+js.style.color = '#ff0000';
+js.style.fontWeight = 'bold';
+- 插入DOM
+```
+<!-- HTML结构 -->
+<p id="js">JavaScript</p>
+<div id="list">
+    <p id="java">Java</p>
+    <p id="python">Python</p>
+    <p id="scheme">Scheme</p>
+</div>
+//把<p id="js">JavaScript</p>添加到<div id="list">的最后一项：
+var
+    js = document.getElementById('js'),
+    list = document.getElementById('list');
+list.appendChild(js);
+//现在，HTML结构变成了这样：
+<!-- HTML结构 -->
+<div id="list">
+    <p id="java">Java</p>
+    <p id="python">Python</p>
+    <p id="scheme">Scheme</p>
+    <p id="js">JavaScript</p>
+</div>
+```
+从零创建一个新的节点，然后插入到指定位置：
+```
+var
+    list = document.getElementById('list'),
+    haskell = document.createElement('p');
+haskell.id = 'haskell';
+haskell.innerText = 'Haskell';
+list.appendChild(haskell);
+//这样我们就动态添加了一个新的节点：
+<!-- HTML结构 -->
+<div id="list">
+    <p id="java">Java</p>
+    <p id="python">Python</p>
+    <p id="scheme">Scheme</p>
+    <p id="haskell">Haskell</p>
+</div>
+```
+- 删除DOM
+要删除一个节点，首先要获得该节点本身以及它的父节点，然后，调用父节点的removeChild把自己删掉：
+```
+// 拿到待删除节点:
+var self = document.getElementById('to-be-removed');
+// 拿到父节点:
+var parent = self.parentElement;
+// 删除:
+var removed = parent.removeChild(self);
+removed === self; // true
+```
