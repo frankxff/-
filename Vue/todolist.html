@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>todolist</title>
+        <meta charset="utf-8">
+        <script src="./vue.js"></script>
+    </head>
+    <body>
+        <div id="root">
+            <div>
+                <input v-model="inputValue" />
+                <button @click="submitClick">提交</button>
+            </div>
+            <ul>
+                <!-- <li v-for="item of list">{{item}}</li> -->
+                <todo-item v-for="item of list" :content="item"></todo-item>
+            </ul>
+        </div>
+
+        <script>
+            /*Vue组件也是一个Vue实例*/
+            //全局组件
+            Vue.component("todo-item", {
+                props: ["content"],
+                template: '<li @click="handleClick">{{content}}</li>',
+                methods:{
+                    handleClick: function(){
+                        alert("clicked!");
+                    }
+                }
+            })
+
+            new Vue({
+                el: "#root",
+                data:{
+                    inputValue: "",
+                    list: [],
+                },
+                methods:{
+                    submitClick: function(){
+                        this.list.push(this.inputValue);
+                        this.inputValue = "";
+                    }
+                }
+            })
+        </script>
+
+    </body>
+</html>

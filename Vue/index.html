@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Vue入门</title>
+        <script src="./vue.js"></script>
+    </head>
+    <body>
+
+        <div id="root">
+            <!-- 插值表达式法 -->
+            <h1>Hello {{welcome}},你是第{{number}}位访客！</h1>
+            <!-- v-text法输出的是变量的字符串内容 -->
+            <div v-text="content"></div>
+            <!-- v-html法输出的是变量中的html内容（浏览器按html语法渲染） -->
+            <div v-html="content"></div>
+            <!-- 添加事件绑定(v-on也可写为@) -->
+            <div v-on:click="handleclick">点击{{jiclick}}弹出Hello World！</div>
+            <div @click="handleclick">点击{{jiclick}}弹出Hello World！</div>
+        </div>
+
+        <!-- 这是通过在Vue实例中添加 template 模板生成的内容 -->
+        <div id="template-demo"></div>
+
+        <!-- 属性绑定和双向绑定 -->
+        <div id="bangding">
+            <!-- 属性绑定( v-bind: 可简写为 ：) -->
+            <div v-bind:title="'frankxff, ' + title">Hello World!</div>
+            <div :title="'frankxff, ' + title">Hello World!</div>
+            <!-- 双向绑定 用 v-model 实现 -->
+            <input v-model:value="content" />
+            <div>{{content}}</div>
+        </div>
+
+        <!-- 计算属性和侦听器 -->
+        <div id="jisuan">
+            <!-- 计算属性 computed -->
+            姓：<input v-model="firstName"/>
+            名：<input v-model="lastName"/>
+            <div>{{fullName}}</div>
+            <!-- 侦听器 watch(监听某一变量的变化，并作出相应业务逻辑) -->
+            <div>{{count}}</div>
+            <div>{{counts}}</div>
+        </div>
+
+        <!-- v-if, v-show, v-for指令 -->
+        <div id="ifshow">
+            <!-- v-if/v-show -->
+            <div v-if="show">Hello World</div>
+            <button @click="handleClick">v-if</button>
+            <!-- v-for(使用:key可提升渲染效率) -->
+            <ul>
+                <li v-for="items of list" :key="items">{{items}}</li>
+            </ul>            
+        </div>
+
+        <script>
+            new Vue({
+                el:"#root",
+                data:{
+                    welcome:"Vue World!",
+                    number: 1328,
+                    content:"<h4>注意v-text和v-html的区别</h4>",
+                    toclick:"Hello",
+                    jiclick:"click"
+                },
+                methods:{
+                    handleclick: function(){                        
+                        this.jiclick = "hello world!";
+                        alert("Hello World!");
+                    }
+                }
+            })
+            new Vue({
+                el:"#template-demo",
+                template:"<h2>这是{{msg2}}生成的内容。</h2>",
+                data:{
+                    msg2:"Vue template模板方法",
+                }
+            })
+            new Vue({
+                el:"#bangding",
+                data:{
+                    title:"this is hello world!",
+                    content:"This is content"
+                }
+            })
+            new Vue({
+                el:"#jisuan",
+                data:{
+                    firstName:"",
+                    lastName:"",
+                    count:0,
+                },
+                computed:{
+                    fullName: function(){
+                        return this.firstName + " " + this.lastName;
+                    }
+                },
+                watch:{
+                    firstName: function(){
+                        this.count ++;
+                    },
+                    lastName: function() {
+                        this.count ++;
+                    },
+                }
+            })
+            new Vue({
+                el:"#ifshow",
+                data:{
+                    show: true,
+                    list: [1, 2, 3],
+                },
+                methods:{
+                    handleClick: function() {
+                       this.show = !this.show; 
+                    }
+                }
+            })
+        </script>
+    </body>
+</html>
